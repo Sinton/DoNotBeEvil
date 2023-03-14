@@ -1,0 +1,8 @@
+/* 
+  InfoPlist.strings
+  DoNotBeEvil
+
+  Created by Yan on 2022/10/17.
+  Copyright © 2022 Yan. All rights reserved.
+*/
+"CFBundleDisplayName" = "Do not be evil";
