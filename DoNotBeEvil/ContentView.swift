@@ -11,90 +11,138 @@ import EventKit
 
 struct CalenderEventItem: Identifiable {
     var id: UUID = UUID()
-    var task: String
     var title: String
+    var startDate: Date
+    var endDate: Date
+    var status: Int
+    var allowsModify: Bool
 }
 
+/**
+ 时间格式转换器
+ */
+let dateFormatter: DateFormatter = {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "YYYY-MM-dd"
+    return formatter
+}()
+
 struct ContentView: View {
-    @State
-    var calenderEvents = getCalenderList()
+    @State private var calenderEvents = getCalenderList()
+    @State private var isChecked: Bool = false
 
     var body: some View {
         VStack {
-            Section(header: Text("其他内容")) {
+            Section {
                 List {
                     ForEach($calenderEvents) { item in
                         HStack {
-                            VStack {
-                                Text(item.task.wrappedValue).fontWeight(.heavy).padding(.bottom, 3)
-                                Text("起:2023-03-08 - 终:2023-03-08").font(.footnote)
-                            }.padding(.leading)
-                            Text("起")
+                            Toggle(isOn: $isChecked) {
+                                Text("")
+                            }
+                            .toggleStyle(CheckboxStyle())
+
+                            VStack(alignment: .leading) {
+                                Text(item.title.wrappedValue)
+                                    .fontWeight(.heavy)
+                                    .padding(.bottom, 3)
+                                Text("起:\(dateFormatter.string(from: item.startDate.wrappedValue)) - 终:\(dateFormatter.string(from: item.startDate.wrappedValue))")
+                                    .font(.footnote)
+                            }
                         }
                     }
                 }
             }
-//            Section(header: Text("待办事项")) {
-//                ForEach($calenderEvents) { item in
-//                    HStack {
-//                        Image(systemName: item.imgName.wrappedValue)
-//                        Text(item.task.wrappedValue)
-//                    }
-//                }
-//            }
         }
     }
 }
 
-//func convertTest(events: [EKEvent]) -> [CalenderEventItem] {
-//    var sequence = [CalenderEventItem]()
-//    for _ in 0...events.count {
-//        var a = CalendarEventItem()
-//        sequence.append(a)
-//    }
-//    return sequence
-//}
+/**
+ 获取自定义日历事件数据
 
+ - Returns:
+ */
 func getCalenderList() -> [CalenderEventItem] {
-    [
-        CalenderEventItem(task: "写一篇SwiftUI文章", title: "惊蛰"),
-        CalenderEventItem(task: "看WWDC视频", title: "惊蛰"),
-        CalenderEventItem(task: "定外卖", title: "惊蛰"),
-        CalenderEventItem(task: "关注OldBirds公众号", title: "惊蛰"),
-        CalenderEventItem(task: "6点半跑步2公里", title: "惊蛰"),
-    ]
-}
-
-func scannerEvents(dayRanges: Int) {
-    let eventStore = EKEventStore()
-    // 授权访问日历事件数据
-    print("====\(eventStore.calendars(for: .event).count)")
-    eventStore.requestAccess(to: .event) { (granted, error) in
-        if (granted) && (error == nil) {
-            var events = getCalendarEvents(eventStore: eventStore, dayRanges: dayRanges)
-            for eventItem in events {
-            }
-            print(events.count)
-            print("=====")
-        } else {
-            // 授权失败，需要提示用户授权日历事件数据的数据访问权限
-        }
+    let events = getCalendarEvents(eventStore: EKEventStore(), dayRanges: -365)
+    var calenderEvents: [CalenderEventItem] = []
+    events.forEach { eventItem in
+        calenderEvents.append(convertCalendarEvents(event: eventItem))
     }
+    return calenderEvents
 }
 
+/**
+ 将事件转换为可迭代访问的对象
+
+ - Parameter event:
+ - Returns:
+ */
+func convertCalendarEvents(event: EKEvent) -> CalenderEventItem {
+    CalenderEventItem(title: event.title.description,
+                      startDate: event.startDate,
+                      endDate: event.endDate,
+                      status: event.status.rawValue,
+                      allowsModify: event.calendar.allowsContentModifications)
+}
+
+/**
+ 获取日历事件数据
+
+ - Parameters:
+   - eventStore: 事件对象
+   - dayRanges: 查询时间范围
+ - Returns:
+ */
 func getCalendarEvents(eventStore: EKEventStore, dayRanges: Int) -> [EKEvent] {
+    // 授权访问
+    grantedScannerEvents(eventStore: eventStore)
+
     // 获取指定时间范围内的所有日历事件
-    let timeRang: TimeInterval = 60 * 60 * 24
-    let startDate = Date().addingTimeInterval(timeRang * Double(dayRanges))
-    let endDate = Date().addingTimeInterval(timeRang)
-    print("查询范围 开始:\(startDate) 结束:\(endDate)")
+    let dayTimeRang: TimeInterval = 60 * 60 * 24
+    let startDate = Date().addingTimeInterval(dayTimeRang * Double(dayRanges))
+    let endDate = Date().addingTimeInterval(dayTimeRang)
+    print("事件查询范围 开始:\(dateFormatter.string(from: startDate)) 结束:\(dateFormatter.string(from: endDate))")
 
     let predicate = eventStore.predicateForEvents(withStart: startDate, end: endDate, calendars: nil)
     return eventStore.events(matching: predicate)
-            .filter { event in event.calendar.type == EKCalendarType.calDAV }
-            .filter { event in event.calendar.source.title == "iCloud" }
-            .filter { event in !event.calendar.isSubscribed }
-            .filter { event in !event.calendar.isNew } as [EKEvent]
+                     .filter { event in event.calendar.type == EKCalendarType.calDAV }
+                     .filter { event in event.calendar.source.title == "iCloud" }
+                     .filter { event in !event.calendar.isSubscribed }
+                     .filter { event in !event.calendar.isNew } as [EKEvent]
+}
+
+/**
+ 同步访问日历事件进行授权
+
+ - Parameter eventStore:
+ */
+func grantedScannerEvents(eventStore: EKEventStore) {
+    // 通过信号量将默认的异步改成同步的访问方式
+    let semaphore = DispatchSemaphore(value: 0)
+    eventStore.requestAccess(to: .event) { (granted, error) in
+        if (granted) && (error == nil) {
+            // 用户已授权，可以访问日历事件数据
+            semaphore.signal()
+        } else {
+            // 用户未授权，无法访问日历事件数据
+            semaphore.signal()
+        }
+    }
+    semaphore.wait()
+}
+
+struct CheckboxStyle: ToggleStyle {
+    let checkIcon   = "square"
+    let checkedIcon = "square.fill"
+    func makeBody(configuration: Configuration) -> some View {
+        HStack {
+            Image(systemName: configuration.isOn ? checkedIcon : checkIcon)
+                .resizable()
+                .frame(width: 20, height: 20)
+                .foregroundColor(configuration.isOn ? .blue : .gray)
+            configuration.label
+        }
+    }
 }
 
 #if DEBUG

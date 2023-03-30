@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		2C08EDD328FF993800F7098A /* EventKitUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2C08EDD228FF993800F7098A /* EventKitUI.framework */; };
-		2C1B8AF329BDA1EB00F6C75F /* PullToRefresh.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C1B8AF229BDA1EB00F6C75F /* PullToRefresh.swift */; };
 		2C2C40B22900435C006AFF94 /* EventKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2C08EDD028FF992100F7098A /* EventKit.framework */; };
 		2C5A329228FD2877005EB5FB /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C5A329128FD2877005EB5FB /* AppDelegate.swift */; };
 		2C5A329428FD2877005EB5FB /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C5A329328FD2877005EB5FB /* SceneDelegate.swift */; };
@@ -41,7 +40,6 @@
 /* Begin PBXFileReference section */
 		2C08EDD028FF992100F7098A /* EventKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = EventKit.framework; path = System/Library/Frameworks/EventKit.framework; sourceTree = SDKROOT; };
 		2C08EDD228FF993800F7098A /* EventKitUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = EventKitUI.framework; path = System/Library/Frameworks/EventKitUI.framework; sourceTree = SDKROOT; };
-		2C1B8AF229BDA1EB00F6C75F /* PullToRefresh.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PullToRefresh.swift; sourceTree = "<group>"; };
 		2C5A328E28FD2877005EB5FB /* DoNotBeEvil.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DoNotBeEvil.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2C5A329128FD2877005EB5FB /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		2C5A329328FD2877005EB5FB /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -97,14 +95,6 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		2C1B8AF129BDA1CC00F6C75F /* View */ = {
-			isa = PBXGroup;
-			children = (
-				2C1B8AF229BDA1EB00F6C75F /* PullToRefresh.swift */,
-			);
-			path = View;
-			sourceTree = "<group>";
-		};
 		2C5A328528FD2877005EB5FB = {
 			isa = PBXGroup;
 			children = (
@@ -129,7 +119,6 @@
 		2C5A329028FD2877005EB5FB /* DoNotBeEvil */ = {
 			isa = PBXGroup;
 			children = (
-				2C1B8AF129BDA1CC00F6C75F /* View */,
 				2C5A329128FD2877005EB5FB /* AppDelegate.swift */,
 				2C5A329328FD2877005EB5FB /* SceneDelegate.swift */,
 				2C5A329528FD2877005EB5FB /* ContentView.swift */,
@@ -302,7 +291,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				2C5A329228FD2877005EB5FB /* AppDelegate.swift in Sources */,
-				2C1B8AF329BDA1EB00F6C75F /* PullToRefresh.swift in Sources */,
 				2C5A329428FD2877005EB5FB /* SceneDelegate.swift in Sources */,
 				2C5A329628FD2877005EB5FB /* ContentView.swift in Sources */,
 			);
