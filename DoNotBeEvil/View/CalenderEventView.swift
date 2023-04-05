@@ -29,37 +29,43 @@ let dateFormatter: DateFormatter = {
 
 struct CalenderEventView: View {
     @State private var calenderEvents = getCalenderList()
-    @State private var isChecked: Bool = false
 
     var body: some View {
-        VStack {
-            Section {
-                List {
-                    ForEach($calenderEvents) { item in
-                        HStack(spacing: 3) {
-                            Toggle(isOn: $isChecked) {
-                                Text("")
-                            }
-                            .toggleStyle(CheckboxStyle())
-                            .onTapGesture {
-                                $isChecked.wrappedValue.toggle()
-                            }
-
-                            VStack(alignment: .leading, spacing: 0) {
-                                Text(item.title.wrappedValue.count > 18 ? item.title.wrappedValue.prefix(18) + "..." : item.title.wrappedValue)
-                                        .padding(.bottom, 3)
-                                Text("起:\(dateFormatter.string(from: item.startDate.wrappedValue)) - 终:\(dateFormatter.string(from: item.endDate.wrappedValue))")
-                                        .font(.footnote)
-                                        .foregroundColor(.gray)
-                            }
-                        }
-                    }
+        ScrollView {
+            VStack(alignment: .leading) {
+                ForEach($calenderEvents) { item in
+                    CalenderEventItemView(eventItem: item)
                 }
             }
         }
     }
 }
 
+struct CalenderEventItemView: View {
+    @Binding var eventItem: CalenderEventItem
+    @State private var isChecked: Bool = false
+    private let wordLength = 18
+
+    var body: some View {
+        HStack(spacing: 3) {
+            Toggle(isOn: self.$isChecked) {
+                Text("")
+            }
+            .toggleStyle(CheckboxStyle())
+            .onTapGesture {
+                self.isChecked.toggle()
+            }
+
+            VStack(alignment: .leading, spacing: 0) {
+                Text(eventItem.title.count > wordLength ? eventItem.title.prefix(wordLength) + "..." : eventItem.title)
+                        .padding(.bottom, 3)
+                Text("起:\(dateFormatter.string(from: eventItem.startDate)) - 终:\(dateFormatter.string(from: eventItem.endDate))")
+                        .font(.footnote)
+                        .foregroundColor(.gray)
+            }
+        }
+    }
+}
 
 /**
  获取自定义日历事件数据
@@ -154,7 +160,7 @@ func grantedScannerEvents(eventStore: EKEventStore) {
 
 struct CheckboxStyle: ToggleStyle {
     let checkIcon   = "square"
-    let checkedIcon = "square.fill"
+    let checkedIcon = "checkmark.square.fill"
     func makeBody(configuration: Configuration) -> some View {
         HStack {
             Image(systemName: configuration.isOn ? checkedIcon : checkIcon)
