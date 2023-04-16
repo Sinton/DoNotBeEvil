@@ -10,13 +10,25 @@ import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        TabView {
+        VStack {
             CalenderEventView()
-                .tabItem {
-                    Image(systemName: "trash.fill").imageScale(.large)
-                }
+                BottomTrashView()
+                    .onTapGesture {
+                        print("delete event item")
+                        NotificationCenter.default.post(name: Notification.Name("deleteNotification"), object: nil, userInfo: nil)
+                    }
+                    .edgesIgnoringSafeArea(.bottom)
         }
-        .accentColor(.red)
+    }
+}
+
+struct BottomTrashView: View {
+    var body: some View {
+        Image(systemName: "trash.fill")
+            .font(.system(size: 25))
+            .foregroundColor(.red)
+        Text("垃圾桶")
+                .font(.system(size: 10))
     }
 }
 

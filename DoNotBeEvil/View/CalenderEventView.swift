@@ -8,6 +8,7 @@
 
 import SwiftUI
 import EventKit
+import NotificationCenter
 
 struct CalenderEventItem: Identifiable {
     var id:           String
@@ -16,25 +17,41 @@ struct CalenderEventItem: Identifiable {
     var endDate:      Date
     var status:       Int
     var allowsModify: Bool
+    var checked:      Bool = false
 }
 
-/**
- 时间格式转换器
- */
-let dateFormatter: DateFormatter = {
-    let formatter = DateFormatter()
-    formatter.dateFormat = "YYYY-MM-dd"
-    return formatter
-}()
+var selectedCalenderEventItem: [String] = []
 
 struct CalenderEventView: View {
     @State private var calenderEvents = getCalenderList()
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading) {
-                ForEach($calenderEvents) { item in
-                    CalenderEventItemView(eventItem: item)
+        if (calenderEvents.count == 0 ) {
+            Text("Empty")
+        } else {
+            ScrollView {
+                VStack(alignment: .leading) {
+                    ForEach($calenderEvents) { item in
+                        CalenderEventItemView(eventItem: item)
+                    }
+                    .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name(rawValue: "deleteNotification"))) { notification in
+                        print("onReceive notification\(notification)")
+                        if selectedCalenderEventItem.count > 0 {
+                            selectedCalenderEventItem.forEach { eventId in
+                                print("delete\(eventId)")
+                                removeCalendarEvent(eventIdentifier: eventId)
+                                let indexOf = selectedCalenderEventItem.firstIndex(of: eventId)
+                                if (indexOf ?? -1 >= 0) {
+                                    selectedCalenderEventItem.remove(at: indexOf!)
+                                }
+                            }
+                            // refresh
+                            calenderEvents = getCalenderList()
+                        }
+                    }
+                    .onDisappear {
+                        NotificationCenter.default.removeObserver(self)
+                    }
                 }
             }
         }
@@ -54,18 +71,39 @@ struct CalenderEventItemView: View {
             .toggleStyle(CheckboxStyle())
             .onTapGesture {
                 self.isChecked.toggle()
+                if (self.isChecked) {
+                    selectedCalenderEventItem.append(eventItem.id)
+                } else {
+                    if (selectedCalenderEventItem.count > 0 && selectedCalenderEventItem.contains(eventItem.id)) {
+                        let indexOf = selectedCalenderEventItem.firstIndex(of: eventItem.id)
+                        if (indexOf ?? -1 >= 0) {
+                            selectedCalenderEventItem.remove(at: indexOf!)
+                        }
+                    }
+                }
+                
+                print("select event id \(eventItem.id)")
             }
 
             VStack(alignment: .leading, spacing: 0) {
                 Text(eventItem.title.count > wordLength ? eventItem.title.prefix(wordLength) + "..." : eventItem.title)
-                        .padding(.bottom, 3)
+                    .padding(.bottom, 3)
                 Text("起:\(dateFormatter.string(from: eventItem.startDate)) - 终:\(dateFormatter.string(from: eventItem.endDate))")
-                        .font(.footnote)
-                        .foregroundColor(.gray)
+                    .font(.footnote)
+                    .foregroundColor(.gray)
             }
         }
     }
 }
+
+/**
+ 时间格式转换器
+ */
+let dateFormatter: DateFormatter = {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "YYYY-MM-dd"
+    return formatter
+}()
 
 /**
  获取自定义日历事件数据
