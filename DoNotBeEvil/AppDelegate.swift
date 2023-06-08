@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import EventKit
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -15,7 +16,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
-        return true
+        let eventStore = EKEventStore()
+        eventStore.requestAccess(to: .event) { (granted, error) in
+            if (granted) && (error == nil) {
+                // 用户已授权，可以访问日历事件数据
+                DispatchQueue.main.async {
+                    // 在主线程上执行逻辑
+                    print("===finish====")
+                }
+            } else {
+            }
+        }
+        return false
     }
 
     // MARK: UISceneSession Lifecycle
