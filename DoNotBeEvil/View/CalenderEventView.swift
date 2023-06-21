@@ -23,13 +23,52 @@ struct CalenderEventItem: Identifiable {
 var selectedCalenderEventItem: [String] = []
 
 struct CalenderEventView: View {
+    @State var isRefresh = false
+    @State var isMore = false
+    
+    @State var textArr : Array<String> = []
+    @State var count = 4
     @State private var calenderEvents = getCalenderList()
 
     var body: some View {
-        if (calenderEvents.count == 0 ) {
-            Text("Empty")
-        } else {
-            ScrollView {
+        VStack {
+            /*
+             offDown: 列表数据滑动总高
+             listH: 列表高度
+             refreshing: 下拉刷新加载UI的开关
+             isMore: 加载更多UI的开关
+             */
+            RefreshScrollView(offDown: CGFloat(textArr.count) * 40.0,
+                              listH: ScreenH - kNavHeight - kBottomSafeHeight,
+                              refreshing: $isRefresh,
+                              isMore: $isMore) {
+                // 下拉刷新触发
+                DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1), execute: {
+                    // 刷新完成，关闭刷新
+                    self.loadData()
+                    isRefresh = false
+                })
+            } moreTrigger: {
+                // 上拉加载更多触发
+//                DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(3), execute: {
+//                    // 加载完成，关闭加载
+//                    for i in 0...10{
+//                        textArr.append(String("\(i + textArr.count) Hello, world!"))
+//                    }
+                    isMore = false
+//                })
+            } content: {
+                // 列表内容
+//                VStack(spacing: 0){
+//                    ForEach(0..<(textArr.count),id: \.self) { index in
+//                        VStack{
+//                            HStack {
+//                                Image(systemName: "car")
+//                                Text(textArr[index] )
+//                            }
+//                        }
+//                    }
+//                }
                 VStack(alignment: .leading) {
                     ForEach($calenderEvents) { item in
                         CalenderEventItemView(eventItem: item)
@@ -54,6 +93,17 @@ struct CalenderEventView: View {
                     }
                 }
             }
+            Spacer()
+        }.onAppear(){
+            self.loadData()
+        }
+        .padding()
+    }
+    
+    func loadData(){
+        textArr.removeAll()
+        for i in 0...count{
+            textArr.append(String("\(i) Hello, world!"))
         }
     }
 }
@@ -113,9 +163,7 @@ let dateFormatter: DateFormatter = {
 func getCalenderList() -> [CalenderEventItem] {
     // 授权访问
     let eventStore = EKEventStore()
-    grantedScannerEvents(eventStore: eventStore)
-
-    let events = getCalendarEvents(eventStore: eventStore, dayRanges: -365)
+    let events = getCalendarEvents(eventStore: EKEventStore(), dayRanges: -365)
     var calenderEvents: [CalenderEventItem] = []
     events.forEach { eventItem in
         calenderEvents.append(convertCalendarEvents(event: eventItem))
@@ -174,26 +222,6 @@ func getCalendarEvents(eventStore: EKEventStore, dayRanges: Int) -> [EKEvent] {
             .filter { event in event.calendar.source.title == "iCloud" }
             .filter { event in !event.calendar.isSubscribed }
             .filter { event in !event.calendar.isNew } as [EKEvent]
-}
-
-/**
- 同步访问日历事件进行授权
-
- - Parameter eventStore:
- */
-func grantedScannerEvents(eventStore: EKEventStore) {
-    // 通过信号量将默认的异步改成同步的访问方式
-    let semaphore = DispatchSemaphore(value: 0)
-    eventStore.requestAccess(to: .event) { (granted, error) in
-        if (granted) && (error == nil) {
-            // 用户已授权，可以访问日历事件数据
-            semaphore.signal()
-        } else {
-            // 用户未授权，无法访问日历事件数据
-            semaphore.signal()
-        }
-    }
-    semaphore.wait()
 }
 
 struct CheckboxStyle: ToggleStyle {
