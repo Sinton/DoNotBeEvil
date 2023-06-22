@@ -7,28 +7,44 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct ContentView: View {
+    @State
+    var title = "Initial Text"
+    @State
+    private var data = [String]()
+
     var body: some View {
-        VStack {
-            CalenderEventView()
-                BottomTrashView()
-                    .onTapGesture {
-                        print("delete event item")
-                        NotificationCenter.default.post(name: Notification.Name("deleteNotification"), object: nil, userInfo: nil)
-                    }
-                    .edgesIgnoringSafeArea(.bottom)
+        NavigationView {
+            ZStack {
+                //NoDataView()
+                CalenderEventView()
+                cleanBtnView()
+            }
+            .navigationBarTitle("日历事件", displayMode: .inline)
         }
     }
-}
 
-struct BottomTrashView: View {
-    var body: some View {
-        Image(systemName: "trash.fill")
-            .font(.system(size: 25))
-            .foregroundColor(.red)
-        Text("垃圾桶")
-                .font(.system(size: 10))
+    func cleanBtnView() -> some View {
+        VStack {
+            Spacer()
+            HStack {
+                Spacer()
+                Button(action: {
+                    print("delete event item")
+                    NotificationCenter.default.post(name: Notification.Name("deleteNotification"),
+                                                    object: nil,
+                                                    userInfo: nil)
+                }) {
+                    Image(systemName: "trash.circle.fill")
+                        .font(.system(size: 48))
+                        .foregroundColor(.red)
+                }
+            }
+        }
+        .padding(.bottom, 32)
+        .padding(.trailing, 32)
     }
 }
 
